@@ -1,0 +1,3 @@
+/Users/kexinli/CLionProjects/ECE243_project/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/Users/kexinli/CLionProjects/ECE243_project/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/kexinli/CLionProjects/ECE243_project/cmake-build-debug/CMakeFiles/ECE243_project.dir
