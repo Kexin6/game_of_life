@@ -52,30 +52,7 @@ EXIT_IRQ:
     					// Register (ICCEOIR)
     POP {R0-R7, LR}
 	SUBS PC, LR, #4 // return from exception
-    
-/*CONFIG_GIC:
-	LDR	R0, =0xFFFED848		// ICDIPTRn
-    LDR R1, =0x00000100		// Set target to CPU0
-    STR	R1, [R0]
-    
-    LDR R0, =0xFFFED108
-    LDR	R1, =0x00000200
-    STR R1, [R0]
-    
-    // Enable E bit in Distributor Control Register
-    MOV R1, #0x1
-    LDR R0, =0xFFFED000
-    STR R1, [R0]
-    
-    LDR R0, =0xFFFEC100
-    LDR R1, =0xFF
-    STR R1, [R0, #4]
-    
-    MOV R1, #0x1
-    STR R1, [R0]
-    
-    BX LR
-*/
+
 KEY_ISR:
 	LDR R0, =0xFF200050
     LDR R1, [R0, #0xC]
@@ -90,27 +67,27 @@ CHECK_KEY0: // Clear the whole screen
 	MOV R3, #0b0001
     ANDS R3, R3, R1
     BEQ CHECK_KEY1	//If key0 is not pressed
+    B clear_screen
 
 
-
-CHECK_KEY1: // Start 
+CHECK_KEY1: // Start a new game
 	MOV R3, #0b0010
     ANDS R3, R3, R1
     BEQ CHECK_KEY2	//If key1 is not pressed
-    MOV R2, #0b00000110		//displays 1 on HEX1
-    ORR R2, R2, R3, LSL #8
-CHECK_KEY2:
+    
+
+CHECK_KEY2: // Stop the game
 	MOV R3, #0b0100
     ANDS R3, R3, R1
     BEQ CHECK_KEY3	//If key2 is not pressed
-    MOV R2, #0b01011011		//displays 2 on HEX2
-    ORR R2, R2, R3, LSL #16
+
+
 CHECK_KEY3:
 	MOV R3, #0b1000
     ANDS R3, R3, R1
     BEQ END_KEY_ISR	//If key3 is not pressed
-    MOV R2, #0b01001111		//displays 3 on HEX3
-    ORR R2, R2, R3, LSL #24
+
+
 END_KEY_ISR:
 	STR R2, [R0]
     BX LR

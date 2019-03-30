@@ -1,10 +1,10 @@
-volatile int pixel_buffer_start; // global variable
+extern volatile int pixel_buffer_start; // global variable
 
-void plot_pixel(int x, int y, short int line_color);
-void clear_screen();
-void draw_line(int xa, int xb, int ya, int yb, short int color);
-void wait_for_vsync();
-void plot_rect(int x, int y, short int color);
+extern void plot_pixel(int x, int y, short int line_color);
+extern void clear_screen();
+extern void draw_line(int xa, int xb, int ya, int yb, short int color);
+extern void wait_for_vsync();
+extern void plot_rect(int x, int y, short int color);
 
 
 int main(void)
