@@ -1,3 +1,6 @@
+#include "initialize_map.cpp"
+#include "check_survival.cpp"
+
 extern volatile int pixel_buffer_start; // global variable
 
 extern void plot_pixel(int x, int y, short int line_color);
@@ -7,22 +10,18 @@ extern void wait_for_vsync();
 extern void plot_rect(int x, int y, short int color);
 
 
-int main(void)
+extern int main(void)
 {
     volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
-    // declare other variables(not shown)
 
-    int x_Xs[8], y_Xs[8], dx_Xs[8], dy_Xs[8], color_Xs[8];
+    // initial set up e.g. initialization and etc.
     int color[10] = {0x001F, 0x07E0, 0x1111, 0xF800, 0xF81F, 0xFFFF, 0xFF11, 0xF700, 0xF911, 0xFFF0};
-    // initialize location and direction of rectangles(not shown)
-    int i = 0;
-    for (; i < 8; i ++) {
-        x_Xs[i] = rand() % 319;
-        y_Xs[i] = rand() % 239;
-        dx_Xs[i] = rand() % 2 * 2 -1;
-        dy_Xs[i] = rand() % 2 * 2 -1;
-        color_Xs[i] = color[rand() % 10];
+    int color_chosen[8];
+    int color_cont = 0;
+    for (; color_cont < 8; color_cont ++) {
+        color_chosen[color_cont] = color[rand() % 10];
     }
+
     /* set front pixel buffer to start of FPGA On-chip memory */
     *(pixel_ctrl_ptr + 1) = 0xC8000000; // first store the address in the 
     // back buffer
@@ -41,29 +40,17 @@ int main(void)
 
         clear_screen();
 
-        int count = 0;
-        // code for drawing the boxes and lines (not shown)
-        for (; count < 8; count ++) {
-            plot_rect(x_Xs[count], y_Xs[count], color_Xs[count]);
-            draw_line(x_Xs[count], y_Xs[count], x_Xs[(count + 1) % 8], y_Xs[(count + 1) % 8], color_Xs[count]);
+        int i = 0;
+        int j = 0;
 
-            // code for updating position
-            x_Xs[count] += dx_Xs[count];
-            y_Xs[count] += dy_Xs[count];
-            // adjust for when object hits the edge
-            if (x_Xs[count] == 1) {
-                dx_Xs[count] = 1;
-            }
-            if (x_Xs[count] == 318) {
-                dx_Xs[count] = -1;
-            }
-            if (y_Xs[count] == 1) {
-                dy_Xs[count] = 1;
-            }
-            if (y_Xs[count] == 238) {
-                dy_Xs[count] = -1;
+        for (; i < 320; i ++) {
+            for (; j < 240; j ++) {
+                if (check_survival(....................)) { // needs to confirm with kath
+                    plot_pixel(i, j, color_chosen[(j + 1)% 8]);
+                }
             }
         }
+
         wait_for_vsync(); // swap front and back buffers on VGA vertical sync
         pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer
     }

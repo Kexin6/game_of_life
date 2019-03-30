@@ -1,4 +1,4 @@
-bool check_survival(bool map[32][24], unsigned i, unsigned j, unsigned survial){
+extern bool check_survival(bool map[32][24], unsigned i, unsigned j, unsigned survial){
 	unsigned count = 0;
     //check if is boundary
     /* case 1: corner */

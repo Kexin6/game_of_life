@@ -11,6 +11,9 @@ B        SERVICE_FIQ	// FIQ interrupt vector
 
 .text
 .global  _start
+.global main
+.global plot_pixel
+.global clear_screen
 
 /* Set up stack pointers for IRQ and SVC processor modes */
 _start:
@@ -74,19 +77,20 @@ CHECK_KEY1: // Start a new game
 	MOV R3, #0b0010
     ANDS R3, R3, R1
     BEQ CHECK_KEY2	//If key1 is not pressed
-    
+    B main
 
 CHECK_KEY2: // Stop the game
 	MOV R3, #0b0100
     ANDS R3, R3, R1
     BEQ CHECK_KEY3	//If key2 is not pressed
+    B CHECK_KEY2
 
 
-CHECK_KEY3:
+CHECK_KEY3: // completely finish the program
 	MOV R3, #0b1000
     ANDS R3, R3, R1
     BEQ END_KEY_ISR	//If key3 is not pressed
-
+REAL_END:   B REAL_END
 
 END_KEY_ISR:
 	STR R2, [R0]
