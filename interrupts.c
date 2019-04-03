@@ -26,6 +26,11 @@ void set_A9_IRQ_stack(void);
 void enable_A9_interrupts(void);
 
 
+void configPS2(void);
+
+void mouseISR(void);
+
+
 // Define the remaining exception handlers
 void __attribute__((interrupt)) __cs3_reset(void){
     while (1)
@@ -52,15 +57,6 @@ void __attribute__((interrupt)) __cs3_isr_fiq(void){
         ;
 }
 
-
-
-
-
-
-
-
-
-
 void config_GIC(void) {
     int address; // used to calculate register addresses
     /* configure the HPS timer interrupt */
@@ -82,7 +78,7 @@ void config_GIC(void) {
 
 void config_KEYs() {
     volatile int *KEY_ptr = (int *)KEY_BASE; // pushbutton KEY address
-    *(KEY_ptr + 2) = 0x3;                    // enable interrupts for KEY[1]
+    *(KEY_ptr + 2) = 0b1111;                    // enable interrupts for KEY[1]
 }
 
 void pushbutton_ISR(void) {
@@ -112,6 +108,8 @@ void __attribute__((interrupt)) __cs3_isr_irq(void){
     if (int_ID == KEYS_IRQ)
     { // check if interrupt is from the KEYs
         pushbutton_ISR();
+    } else if (interrupt_ID == 79) {
+        mouseISR();
     }
     else
     {
@@ -154,5 +152,111 @@ void enable_A9_interrupts(void){
     asm("msr cpsr, %[ps]"
     :
     : [ps] "r"(status));
+}
+
+
+// Configure PS2
+void configPS2(void) {
+    volatile int * PS2_ptr = (int *)PS2_BASE; // PS/2 port address
+
+    *(PS2_ptr) = 0xFF; /* reset */
+    // *PS2_ptr = 0xE8;	// Set Resolution
+    // *PS2_ptr = 0x00;	// Resolution
+    // *PS2_ptr = 0xEA;
+
+    *(PS2_ptr + 1) = 0x1; /* write to the PS/2 Control register to enable interrupts */
+
+}
+
+
+
+
+
+
+
+
+
+
+void mouseISR(void) {
+    // Check that there are only 3 packets
+    volatile int * PS2_ptr = (int *) 0xFF200100;
+    int PS2_data, RAVAIL;
+    PS2_data = *(PS2_ptr); // read the Data register in the PS/2 port
+    RAVAIL = (PS2_data & 0xFFFF0000) >> 16;			// extract the RAVAIL field
+
+    // byteNumber = (RAVAIL-1) % 3;
+    // printf("Byte number %d\n", RAVAIL);
+    if (*(PS2_ptr) == 0xFA){
+        byteNumber = 0;
+        return;
+    }
+    if (RAVAIL){
+        if (byteNumber == 0) {
+            byte1 = *(PS2_ptr) & 0xFF;
+            if (byte1 & 0x01) {
+                mouseClicked = 1;
+            }
+        }
+
+        // If X movement
+        if (byteNumber == 1) {
+            byte2 = *(PS2_ptr) & 0xFF;
+            // If no overflow
+            if (!(byte1 & 0x40)) {
+                if (byte1 & 0x10) {
+                    // If negative, then subtract the magnitude of x movement
+                    xPos -= (byte2 ^ 0xFF) + 1;
+                    // if (byte2^0xFF > 4)
+                    // xPos -= 2;
+                }
+                else {
+//					// if (byte2 > 4)
+//						// xPos += 2;
+                    xPos += byte2;
+                }
+            }
+        }
+
+        // If Y movement
+        if (byteNumber == 2) {
+            byte3 = *(PS2_ptr) & 0xFF;
+            // If no overflow
+            if (!(byte1 & 0x80)) {
+                if (byte1 & 0x20) {
+                    // If negative, then subtract the magnitude of x movement
+                    // Mouse movement up is positive, but on screen should be negative
+                    // yPos += (unsigned)((byte2 ^ 0xFF) + 1);
+                    // if ((byte3^0xFF) + 1 > 4)
+                    // yPos += 2;
+                    yPos += (unsigned)(byte3 ^ 0xFF) + 1;
+                }
+                else {
+                    // yPos -= (unsigned)byte2;
+                    // if (byte3 > 4)
+                    // yPos -= 2;
+                    yPos -= (unsigned) byte3;
+                }
+            }
+        }
+        if (xPos < 0) {
+            xPos = 0;
+        }
+        else if (xPos >= 320) {
+            xPos = 319;
+        }
+
+        if (yPos < 0) {
+            yPos = 0;
+        }
+        else if (yPos >= 240) {
+            yPos = 239;
+        }
+
+        byteNumber++;
+        if (byteNumber == 3) {
+            byteNumber = 0;
+        }
+    }
+
 }
 
