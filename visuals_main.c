@@ -9830,7 +9830,7 @@ void config_GIC(void) {
 
 void config_KEYs() {
     volatile int *KEY_ptr = (int *)KEY_BASE; // pushbutton KEY address
-    *(KEY_ptr + 2) = 0x3;                    // enable interrupts for KEY[1]
+    *(KEY_ptr + 2) = 0b1111;                    // enable interrupts for KEY[1]
 }
 
 void pushbutton_ISR(void) {
@@ -9957,7 +9957,7 @@ int main(void)
     {
         if (key_pressed == 2) {//stop
             while(1){
-                if (key_pressed == 1) break;//start
+                if (key_pressed == 1 || key_pressed == 0 || key_pressed == 3) break;//start
             }
         }
         if (key_pressed == 0){ // back to the cover page
